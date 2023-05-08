@@ -4,10 +4,12 @@ const Joi = require("joi");
 
 const router = express.Router();
 
-const addSchema = Joi.object({
-  name: Joi.string().required(),
-  email: Joi.string().required(),
-  phone: Joi.string().required(),
+const schema = Joi.object({
+  name: Joi.string().alphanum().min(5).max(30).required(),
+  email: Joi.string()
+    .email({ minDomainSegments: 2, tlds: { allow: ["com", "net", "ua"] } })
+    .required(),
+  phone: Joi.string().min(8).max(15).required(),
 });
 
 const contacts = require("../../models/contacts");
@@ -38,7 +40,7 @@ router.get("/:id", async (req, res, next) => {
 
 router.post("/", async (req, res, next) => {
   try {
-    const { error } = addSchema.validate(req.body);
+    const { error } = schema.validate(req.body);
     if (error) {
       throw HttpError(400, "missing required name field");
     }
@@ -64,7 +66,7 @@ router.delete("/:id", async (req, res, next) => {
 
 router.put("/:id", async (req, res, next) => {
   try {
-    const { error } = addSchema.validate(req.body);
+    const { error } = schema.validate(req.body);
     if (error) {
       throw HttpError(400, "missing fields");
     }
